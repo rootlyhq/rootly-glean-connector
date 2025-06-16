@@ -10,14 +10,16 @@ from data_fetchers import (
     fetch_incidents, 
     fetch_alerts, 
     fetch_schedules, 
-    fetch_escalation_policies
+    fetch_escalation_policies,
+    fetch_retrospectives
 )
 from data_fetchers.enhanced_incidents import fetch_enhanced_incidents
 from document_mappers import (
     incident_to_doc,
     alert_to_doc, 
     schedule_to_doc,
-    escalation_policy_to_doc
+    escalation_policy_to_doc,
+    retrospective_to_doc
 )
 from glean_schema import get_object_definitions
 
@@ -49,6 +51,11 @@ class SyncCoordinator:
                 'fetcher': fetch_escalation_policies,
                 'mapper': escalation_policy_to_doc,
                 'config': self.config.data_types.escalation_policies
+            },
+            'retrospectives': {
+                'fetcher': fetch_retrospectives,
+                'mapper': retrospective_to_doc,
+                'config': self.config.data_types.retrospectives
             }
         }
     

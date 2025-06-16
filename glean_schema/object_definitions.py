@@ -44,6 +44,14 @@ def get_object_definitions() -> List[models.ObjectDefinition]:
             display_label="Escalation Policy",
             doc_category="UNCATEGORIZED",
             summarizable=True
+        ),
+        
+        # Retrospective object definition
+        models.ObjectDefinition(
+            name="Retrospective",
+            display_label="Retrospective",
+            doc_category="TICKETS",
+            summarizable=True
         )
     ]
 
