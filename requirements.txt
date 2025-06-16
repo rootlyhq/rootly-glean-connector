@@ -1,0 +1,9 @@
+requests
+python-dateutil
+python-dotenv
+
+# HTTP helper used in the script
+requests>=2.31.0
+
+# ISO‑8601 timestamp parsing
+python-dateutil>=2.9.0
