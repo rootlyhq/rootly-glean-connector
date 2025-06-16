@@ -4,12 +4,13 @@ A Python integration that syncs Rootly incident management data with Glean for u
 
 ## Overview
 
-This project creates a seamless connection between Rootly and Glean, enabling users to search incidents, alerts, schedules, and escalation policies directly within Glean's interface. The integration includes enhanced incident features with timeline events, action items, and detailed severity information.
+This project creates a seamless connection between Rootly and Glean, enabling users to search incidents, alerts, schedules, escalation policies, and retrospectives directly within Glean's interface. The integration includes enhanced incident features with timeline events, action items, detailed severity information, and comprehensive postmortem analysis.
 
 ## Features
 
-- **Multi-Data Type Support**: Incidents, alerts, schedules, and escalation policies
+- **Multi-Data Type Support**: Incidents, alerts, schedules, escalation policies, and retrospectives
 - **Enhanced Incident Data**: Timeline events, action items, and detailed severity information
+- **Comprehensive Retrospectives**: What went well, improvements, lessons learned, and action items
 - **Modular Architecture**: Separate data fetchers and document mappers for each data type
 - **Configuration Management**: Structured config with separated secrets management
 - **Real-time Sync**: Configurable sync intervals and filtering options
@@ -56,25 +57,28 @@ python app.py 2024-01-01T00:00:00Z
 ## Configuration
 
 Edit `config.json` to customize:
-- Data type settings (enable/disable incidents, alerts, etc.)
-- Item limits and pagination
-- Enhanced incident features
-- Logging levels
+- Data type settings (enable/disable incidents, alerts, schedules, escalation policies, retrospectives)
+- Item limits and pagination per data type
+- Enhanced incident features (timeline events, action items)
+- Logging levels and sync intervals
 
 ## Glean Search
 
 Once synced, search for Rootly data in Glean:
-- Incident numbers: `INC-123`
-- By severity: `severity:high`
-- By status: `status:resolved` 
-- Timeline events and action items are embedded in incident documents
+- **Incidents**: `INC-123`, `severity:high`, `status:resolved`
+- **Retrospectives**: `objectType:Retrospective`, `type:retrospective`
+- **Linked Content**: `incident:123` (find retrospectives for specific incidents)
+- **Timeline Events**: Embedded in incident documents with timestamps
+- **Action Items**: From both incidents and retrospectives
+- **Postmortem Analysis**: "what went well", "lessons learned", improvement suggestions
 
 ## Architecture
 
-- **Data Fetchers**: Modular API clients for each Rootly data type
-- **Document Mappers**: Convert Rootly data to Glean document format
-- **Sync Coordinator**: Orchestrates multi-data-type synchronization
-- **Enhanced Features**: Timeline events, action items, and detailed metadata
+- **Data Fetchers**: Modular API clients for each Rootly data type (incidents, alerts, schedules, escalation policies, retrospectives)
+- **Document Mappers**: Convert Rootly data to Glean document format with rich content
+- **Sync Coordinator**: Orchestrates multi-data-type synchronization with error handling
+- **Enhanced Features**: Timeline events, action items, retrospective analysis, and detailed metadata
+- **Configuration System**: Structured config management with separated secrets
 
 ## Contact
 
