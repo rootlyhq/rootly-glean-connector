@@ -51,6 +51,7 @@ class DataTypesConfig:
     alerts: DataTypeConfig
     schedules: DataTypeConfig
     escalation_policies: DataTypeConfig
+    retrospectives: DataTypeConfig
 
 
 @dataclass
@@ -136,6 +137,11 @@ class ConfigManager:
                         enabled=config_data["data_types"]["escalation_policies"]["enabled"],
                         max_items=config_data["data_types"]["escalation_policies"]["max_items"],
                         items_per_page=config_data["data_types"]["escalation_policies"]["items_per_page"]
+                    ),
+                    retrospectives=DataTypeConfig(
+                        enabled=config_data["data_types"]["retrospectives"]["enabled"],
+                        max_items=config_data["data_types"]["retrospectives"]["max_items"],
+                        items_per_page=config_data["data_types"]["retrospectives"]["items_per_page"]
                     )
                 ),
                 processing=ProcessingConfig(
