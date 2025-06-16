@@ -28,10 +28,35 @@ class RootlyConfig:
 
 
 @dataclass
-class ProcessingConfig:
-    max_incidents: int
+class EnhancedDataConfig:
+    include_events: bool
+    include_action_items: bool
+
+
+@dataclass
+class DataTypeConfig:
+    enabled: bool
+    max_items: int
     items_per_page: int
+
+
+@dataclass
+class IncidentDataTypeConfig(DataTypeConfig):
+    enhanced_data: EnhancedDataConfig
+
+
+@dataclass
+class DataTypesConfig:
+    incidents: IncidentDataTypeConfig
+    alerts: DataTypeConfig
+    schedules: DataTypeConfig
+    escalation_policies: DataTypeConfig
+
+
+@dataclass
+class ProcessingConfig:
     max_pages: int
+    sync_interval_minutes: int
 
 
 @dataclass
@@ -44,6 +69,7 @@ class LoggingConfig:
 class AppConfig:
     glean: GleanConfig
     rootly: RootlyConfig
+    data_types: DataTypesConfig
     processing: ProcessingConfig
     logging: LoggingConfig
 
@@ -86,10 +112,35 @@ class ConfigManager:
                     api_base=config_data["rootly"]["api_base"],
                     api_token=secrets["ROOTLY_API_TOKEN"]
                 ),
+                data_types=DataTypesConfig(
+                    incidents=IncidentDataTypeConfig(
+                        enabled=config_data["data_types"]["incidents"]["enabled"],
+                        max_items=config_data["data_types"]["incidents"]["max_items"],
+                        items_per_page=config_data["data_types"]["incidents"]["items_per_page"],
+                        enhanced_data=EnhancedDataConfig(
+                            include_events=config_data["data_types"]["incidents"]["enhanced_data"]["include_events"],
+                            include_action_items=config_data["data_types"]["incidents"]["enhanced_data"]["include_action_items"]
+                        )
+                    ),
+                    alerts=DataTypeConfig(
+                        enabled=config_data["data_types"]["alerts"]["enabled"],
+                        max_items=config_data["data_types"]["alerts"]["max_items"],
+                        items_per_page=config_data["data_types"]["alerts"]["items_per_page"]
+                    ),
+                    schedules=DataTypeConfig(
+                        enabled=config_data["data_types"]["schedules"]["enabled"],
+                        max_items=config_data["data_types"]["schedules"]["max_items"],
+                        items_per_page=config_data["data_types"]["schedules"]["items_per_page"]
+                    ),
+                    escalation_policies=DataTypeConfig(
+                        enabled=config_data["data_types"]["escalation_policies"]["enabled"],
+                        max_items=config_data["data_types"]["escalation_policies"]["max_items"],
+                        items_per_page=config_data["data_types"]["escalation_policies"]["items_per_page"]
+                    )
+                ),
                 processing=ProcessingConfig(
-                    max_incidents=config_data["processing"]["max_incidents"],
-                    items_per_page=config_data["processing"]["items_per_page"],
-                    max_pages=config_data["processing"]["max_pages"]
+                    max_pages=config_data["processing"]["max_pages"],
+                    sync_interval_minutes=config_data["processing"]["sync_interval_minutes"]
                 ),
                 logging=LoggingConfig(
                     level=config_data["logging"]["level"],

@@ -23,7 +23,7 @@ logging.getLogger("httpx").setLevel(logging.DEBUG)
 logging.info("Configuration loaded successfully")
 logging.info(f"Using Glean datasource: {config.glean.datasource_name}")
 logging.info(f"Using Glean host: {config.glean.api_host}")
-logging.info(f"Processing up to {config.processing.max_incidents} incidents")
+logging.info(f"Enabled data types: incidents({config.data_types.incidents.enabled}), alerts({config.data_types.alerts.enabled}), schedules({config.data_types.schedules.enabled}), escalation_policies({config.data_types.escalation_policies.enabled})")
 
 # ----------------- 2. Libraries -----------------------
 
@@ -33,6 +33,8 @@ from dateutil import parser as dtparse
 import httpx # Import httpx for type hinting for the hook
 
 from glean.api_client import Glean, models, errors as glean_errors
+from glean_schema import get_object_definitions
+from processors import SyncCoordinator
 
 # ----------------- 3. Glean helpers -------------------
 
@@ -72,13 +74,13 @@ def log_request_details(request: httpx.Request):
 def ensure_datasource(client: Glean) -> None:
     logging.info(f"Creating/updating datasource '{config.glean.datasource_name}'...")
     
-    # Create the datasource configuration
+    # Create the datasource configuration with all object definitions
     config_payload = models.CustomDatasourceConfig(
         name=config.glean.datasource_name,
         display_name=config.glean.display_name,
         datasource_category="TICKETS",
-        url_regex="https://rootly.com/account/incidents/.*",
-        object_definitions=[models.ObjectDefinition(name="Incident", doc_category="TICKETS")]
+        url_regex="https://rootly.com/account/(incidents|alerts|schedules|escalation_policies)/.*",
+        object_definitions=get_object_definitions()
     )
     
     try:
@@ -93,210 +95,76 @@ def ensure_datasource(client: Glean) -> None:
         logging.error(f"Unexpected error when trying to create/update datasource '{config.glean.datasource_name}': {e}")
         raise
 
-def bulk_index(client: Glean, docs: List[dict]) -> None:
-    logging.info(f"Attempting to index {len(docs)} documents (Refactoring needed)...")
-    # TODO: Refactor this function using the new 'client' (glean.Glean)
-    # Example: client.indexing.documents.index(documents=docs, datasource=DATASOURCE_NAME)
-    pass
-
-# ----------------- 4. Rootly helpers ------------------
-
-def fetch_incidents(updated_after: Optional[str] = None, target_page: Optional[int] = None, items_per_page: int = 10) -> List[dict]:
-    logging.info(f"Fetching incidents from Rootly, updated after: {updated_after if updated_after else 'N/A'}, target page: {target_page}")
-    
-    hdrs = {
-        "Authorization": f"Bearer {config.rootly.api_token}",
-        "Content-Type" : "application/vnd.api+json",
-    }
-    params = {
-        "updated_after": updated_after if updated_after else None,
-        "page[size]": items_per_page,  # Set page size
-        "page[number]": target_page if target_page else 1  # Directly set page number
-    }
-    params = {k: v for k, v in params.items() if v is not None}  # Remove None values
-    url = f"{config.rootly.api_base}/incidents"
-    
-    try:
-        logging.info(f"Fetching page {target_page} directly from {url} with params: {params}")
-        r = requests.get(url, headers=hdrs, params=params, timeout=30)
-        r.raise_for_status()
-        payload = r.json()
-        items = payload["data"]
-        logging.info(f"Successfully fetched {len(items)} items from page {target_page}")
-        return items
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error fetching incidents from Rootly (page {target_page}, URL: {url}): {e}")
-        return []
-
-    return items
-
-def to_doc(i: dict) -> models.DocumentDefinition | None:
-    try:
-        # Safely access attributes
-        a = i.get("attributes")
-        if not a:
-            logging.error(f"Incident ID {i.get('id', 'Unknown ID')} is missing 'attributes' or 'attributes' is None. Skipping.")
-            return None
-
-        # Build document fields, only including non-null values, using snake_case for model fields
-        doc_fields = {
-            "id": i["id"],
-            "datasource": config.glean.datasource_name,
-            "title": f"[INC-{a.get('sequential_id', 'N/A')}] {a.get('title', 'No Title')}",
-            "object_type": "Incident",  # Changed to snake_case
-            "view_url": a.get("url"),     # Changed to snake_case
-            "permissions": {
-                "allow_anonymous_access": True  # Changed to snake_case
-            }
-        }
-
-        # Add status if exists
-        if status := a.get('status'):
-            doc_fields["status"] = status
-            if "tags" not in doc_fields:
-                doc_fields["tags"] = []
-            doc_fields["tags"].append(f"status:{status}")
-
-        # Handle severity data safely
-        if severity := a.get('severity'):
-            if isinstance(severity, dict) and (severity_data := severity.get('data', {}).get('attributes', {})):
-                severity_name = severity_data.get('name')
-                # severity_desc = severity_data.get('description', '') # Not directly used in doc_fields
-                if severity_name and severity_name != "Unknown":
-                    if "tags" not in doc_fields:
-                        doc_fields["tags"] = []
-                    doc_fields["tags"].append(f"severity:{severity_name}")
-
-        # Add kind tag if exists
-        if kind := a.get('kind'):
-            if "tags" not in doc_fields:
-                doc_fields["tags"] = []
-            doc_fields["tags"].append(f"kind:{kind}")
-
-        # Build content string
-        content_parts = []
-        content_parts.append(f"Title: {a.get('title', 'No Title')}")
-        if status: # status already checked and added to doc_fields
-            content_parts.append(f"Status: {status}")
-
-        # Add summary if exists
-        if summary_text := a.get("summary"):
-            content_parts.append(f"\nSummary:\n{summary_text}")
-            doc_fields["summary"] = { # 'summary' is the field name for the Content model
-                "mime_type": "text/plain",    # Changed to snake_case
-                "text_content": summary_text  # Changed to snake_case
-            }
-
-        # Add action items if they exist
-        if action_items := i.get('relationships', {}).get('action_items', {}).get('data', []):
-            content_parts.append("\nAction Items:")
-            for item in action_items:
-                content_parts.append(f"- {item.get('id', 'Unknown Action Item')}")
-
-        # Add body content
-        doc_fields["body"] = { # 'body' is the field name for the Content model
-            "mime_type": "text/plain",        # Changed to snake_case
-            "text_content": "\n".join(content_parts)  # Changed to snake_case
-        }
-
-        # Add author if available
-        if user_data := a.get('user', {}).get('data', {}).get('attributes', {}):
-            author_details = {}
-            if full_name := user_data.get('full_name'):
-                author_details["name"] = full_name
-            if email := user_data.get('email'):
-                author_details["email"] = email
-            if author_details: # If any author details were found
-                doc_fields["author"] = author_details # 'author' is the field name for Author model
-
-        # Add timestamps if available, using snake_case for model fields
-        for ts_model_field, src_api_field in [("created_at", "created_at"), ("updated_at", "updated_at")]:
-            if ts_api_value := a.get(src_api_field):
-                try:
-                    doc_fields[ts_model_field] = int(dtparse.isoparse(ts_api_value).timestamp())
-                except (ValueError, TypeError):
-                    logging.warning(f"Could not parse {src_api_field}: {ts_api_value}")
-
-        logging.info(f"Document fields for Pydantic model: {json.dumps(doc_fields, indent=2)}")
-        return models.DocumentDefinition(**doc_fields)
-
-    except Exception as e:
-        logging.error(f"Error creating document for incident {i.get('id', 'Unknown ID')}: {e}", exc_info=True)
-        return None
+# Old functions removed - now using modular data fetchers and document mappers
 
 # ----------------- 5. Main flow -----------------------
 
 if __name__ == "__main__":
-    logging.info("Script starting for bulk incident processing...")
+    logging.info("Script starting for multi-data-type Rootly processing...")
     
     # Configuration is already loaded and validated at module level
+    sync_coordinator = SyncCoordinator()
+    enabled_types = sync_coordinator.get_enabled_data_types()
+    logging.info(f"Enabled data types: {', '.join(enabled_types)}")
 
     since = sys.argv[1] if len(sys.argv) > 1 else None
     if since:
         try:
             dtparse.isoparse(since)              # validate ISO‑8601
-            logging.info(f"Processing incidents since: {since}")
+            logging.info(f"Processing data since: {since}")
         except ValueError as e:
             logging.error(f"Invalid 'since' date format: {since}. Error: {e}. Please use ISO-8601 format (e.g., YYYY-MM-DDTHH:MM:SSZ).")
             sys.exit(1)
     else:
-        logging.info(f"No 'since' date provided; fetching incidents up to {config.processing.max_incidents} from the first {config.processing.max_pages} pages.")
+        logging.info(f"No 'since' date provided; fetching all enabled data types with configured limits.")
 
     try:
         with glean_client() as c:
             ensure_datasource(c)  # Create/update the datasource first
             
-            all_incidents_data = []
-
-            logging.info(f"Starting to fetch incidents from Rootly, up to {config.processing.max_pages} pages or {config.processing.max_incidents} incidents...")
-            for page_num in range(1, config.processing.max_pages + 1):
-                if len(all_incidents_data) >= config.processing.max_incidents:
-                    logging.info(f"Reached max incidents ({config.processing.max_incidents}). Stopping fetch.")
-                    break
-                logging.info(f"Fetching page {page_num} from Rootly...")
-                # Calculate remaining items to fetch to not exceed max_incidents
-                remaining_slots = config.processing.max_incidents - len(all_incidents_data)
-                current_items_per_page = min(config.processing.items_per_page, remaining_slots) if remaining_slots > 0 else config.processing.items_per_page
-                
-                if current_items_per_page <= 0 and len(all_incidents_data) >= config.processing.max_incidents:
-                    break
-                    
-                page_incidents = fetch_incidents(updated_after=since, target_page=page_num, items_per_page=current_items_per_page)
-                if not page_incidents:
-                    logging.info(f"No incidents found on page {page_num}. Assuming no more incidents.")
-                    break # Stop if a page returns no incidents
-                all_incidents_data.extend(page_incidents)
-                logging.info(f"Fetched {len(page_incidents)} incidents from page {page_num}. Total fetched: {len(all_incidents_data)}.")
+            # Sync all enabled data types
+            logging.info("Starting sync of all enabled data types...")
+            sync_results, all_documents = sync_coordinator.sync_all_data_types(updated_after=since)
             
-            # Ensure we don't process more than max_incidents
-            incidents_to_process = all_incidents_data[:config.processing.max_incidents]
-            logging.info(f"Total incidents to process after fetching: {len(incidents_to_process)}")
-
-            if not incidents_to_process:
-                logging.info("No incidents fetched or to process. Exiting.")
-                sys.exit(0)
-
-            docs_to_index = []
-            logging.info(f"\n--- Converting {len(incidents_to_process)} incidents to Glean documents ---")
-            for count, incident_data in enumerate(incidents_to_process):
-                logging.debug(f"Processing incident {count+1}/{len(incidents_to_process)}, ID: {incident_data.get('id')}")
-                doc = to_doc(incident_data)
-                if doc:
-                    docs_to_index.append(doc)
+            # Log sync results
+            logging.info("\\n--- Sync Results Summary ---")
+            for data_type, result in sync_results.items():
+                if data_type == 'summary':
+                    continue
+                status = result.get('status', 'unknown')
+                if status == 'success':
+                    doc_count = result.get('documents_created', 0)
+                    logging.info(f"{data_type}: ✅ {doc_count} documents")
+                elif status == 'skipped':
+                    reason = result.get('reason', 'unknown')
+                    logging.info(f"{data_type}: ⏭️  skipped ({reason})")
                 else:
-                    logging.warning(f"Failed to convert incident ID {incident_data.get('id')} to document. Skipping.")
+                    error = result.get('error', 'unknown error')
+                    logging.error(f"{data_type}: ❌ failed - {error}")
             
-            if not docs_to_index:
-                logging.info("No documents were successfully converted for indexing. Exiting.")
+            total_docs = sync_results.get('summary', {}).get('total_documents', 0)
+            logging.info(f"Total documents to index: {total_docs}")
+
+            if not all_documents:
+                logging.info("No documents were created from any data type. Exiting.")
                 sys.exit(0)
 
-            logging.info(f"\n--- Attempting to bulk index {len(docs_to_index)} documents ---")
+            logging.info(f"\\n--- Attempting to bulk index {len(all_documents)} documents ---")
+            
+            # Debug: Check for documents with empty view URLs
+            for i, doc in enumerate(all_documents):
+                doc_dict = doc.model_dump() if hasattr(doc, 'model_dump') else doc.__dict__
+                if 'viewURL' in doc_dict and not doc_dict['viewURL']:
+                    logging.warning(f"Document {i} ({doc_dict.get('title', 'No title')}) has empty viewURL")
+                elif 'viewURL' not in doc_dict:
+                    logging.debug(f"Document {i} ({doc_dict.get('title', 'No title')}) has no viewURL field")
+            
             try:
                 index_api_response = c.indexing.documents.index(
                     datasource=config.glean.datasource_name,
-                    documents=docs_to_index # Pass the list of DocumentDefinition objects
+                    documents=all_documents
                 )
-                logging.info(f"✔ Successfully initiated bulk indexing for {len(docs_to_index)} documents. Response: {index_api_response}")
+                logging.info(f"✅ Successfully indexed {len(all_documents)} documents. Response: {index_api_response}")
 
             except glean_errors.GleanError as e_index:
                 logging.error(f"Glean API error during bulk document indexing: {e_index}", exc_info=True)
@@ -311,7 +179,7 @@ if __name__ == "__main__":
                 logging.error(f"Unexpected error during bulk document indexing: {e_index}", exc_info=True)
                 sys.exit(1)
 
-            logging.info("\n--- Bulk processing finished ---")
+            logging.info("\\n--- Multi-data-type sync completed successfully ---")
 
         logging.info("Script finished successfully.")
 

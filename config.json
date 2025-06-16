@@ -2,18 +2,43 @@
   "glean": {
     "api_host": "support-lab-be.glean.com",
     "datasource_name": "rootly",
-    "display_name": "Rootly Incidents"
+    "display_name": "Rootly Integration"
   },
   "rootly": {
     "api_base": "https://api.rootly.com/v1"
   },
+  "data_types": {
+    "incidents": {
+      "enabled": true,
+      "max_items": 50,
+      "items_per_page": 10,
+      "enhanced_data": {
+        "include_events": true,
+        "include_action_items": true
+      }
+    },
+    "alerts": {
+      "enabled": true,
+      "max_items": 30,
+      "items_per_page": 10
+    },
+    "schedules": {
+      "enabled": true,
+      "max_items": 20,
+      "items_per_page": 10
+    },
+    "escalation_policies": {
+      "enabled": true,
+      "max_items": 20,
+      "items_per_page": 10
+    }
+  },
   "processing": {
-    "max_incidents": 50,
-    "items_per_page": 10,
-    "max_pages": 10
+    "max_pages": 10,
+    "sync_interval_minutes": 60
   },
   "logging": {
-    "level": "DEBUG",
+    "level": "INFO",
     "format": "%(asctime)s - %(levelname)s - %(message)s"
   }
 }
