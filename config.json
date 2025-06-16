@@ -1,0 +1,19 @@
+{
+  "glean": {
+    "api_host": "support-lab-be.glean.com",
+    "datasource_name": "rootly",
+    "display_name": "Rootly Incidents"
+  },
+  "rootly": {
+    "api_base": "https://api.rootly.com/v1"
+  },
+  "processing": {
+    "max_incidents": 50,
+    "items_per_page": 10,
+    "max_pages": 10
+  },
+  "logging": {
+    "level": "DEBUG",
+    "format": "%(asctime)s - %(levelname)s - %(message)s"
+  }
+}
