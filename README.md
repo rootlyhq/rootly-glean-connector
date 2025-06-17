@@ -6,6 +6,13 @@ A Python integration that syncs Rootly incident management data with Glean for u
 
 This project creates a seamless connection between Rootly and Glean, enabling users to search incidents, alerts, schedules, escalation policies, and retrospectives directly within Glean's interface. The integration includes enhanced incident features with timeline events, action items, detailed severity information, and comprehensive postmortem analysis.
 
+## Architecture
+
+- **data_fetchers/**: API clients for each Rootly data type
+- **document_mappers/**: Convert Rootly data to Glean document format
+- **processors/**: Sync coordination and orchestration
+- **glean_schema/**: Glean document definitions
+
 ## Features
 
 - **Multi-Data Type Support**: Incidents, alerts, schedules, escalation policies, and retrospectives
@@ -27,7 +34,7 @@ This project creates a seamless connection between Rootly and Glean, enabling us
    git clone <repository-url>
    cd rootly_glean_integration
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   source venv/bin/activate
    ```
 
 2. **Install dependencies:**
@@ -72,14 +79,4 @@ Once synced, search for Rootly data in Glean:
 - **Action Items**: From both incidents and retrospectives
 - **Postmortem Analysis**: "what went well", "lessons learned", improvement suggestions
 
-## Architecture
 
-- **Data Fetchers**: Modular API clients for each Rootly data type (incidents, alerts, schedules, escalation policies, retrospectives)
-- **Document Mappers**: Convert Rootly data to Glean document format with rich content
-- **Sync Coordinator**: Orchestrates multi-data-type synchronization with error handling
-- **Enhanced Features**: Timeline events, action items, retrospective analysis, and detailed metadata
-- **Configuration System**: Structured config management with separated secrets
-
-## Contact
-
-For API tokens and setup assistance, contact **Spencer**.
