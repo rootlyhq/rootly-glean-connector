@@ -101,8 +101,11 @@ class BaseDocumentMapper:
         Returns:
             Base document dictionary
         """
+        # Ensure unique document ID by prefixing with object type
+        unique_doc_id = f"{object_type.lower()}_{item_id}"
+        
         doc_fields = {
-            "id": item_id,
+            "id": unique_doc_id,
             "datasource": self.config.glean.datasource_name,
             "title": title,
             "object_type": object_type,

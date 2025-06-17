@@ -1,9 +1,13 @@
 requests
 python-dateutil
 python-dotenv
+glean-api-client
 
 # HTTP helper used in the script
 requests>=2.31.0
 
 # ISO‑8601 timestamp parsing
 python-dateutil>=2.9.0
+
+# Glean API client
+glean-api-client>=0.1.0
