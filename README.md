@@ -4,34 +4,29 @@ A Python integration that syncs Rootly incident management data with Glean for u
 
 ## Overview
 
-This project creates a seamless connection between Rootly and Glean, enabling users to search incidents, alerts, schedules, escalation policies, and retrospectives directly within Glean's interface. The integration includes enhanced incident features with timeline events, action items, detailed severity information, and comprehensive postmortem analysis.
+This project creates a seamless connection between Rootly and Glean, enabling users to search for:
 
-## Architecture
+- **Incidents** - Active and resolved incidents with severity, status, and timeline data
+- **Alerts** - Alert configurations and monitoring rules
+- **Schedules** - On-call schedules and team assignments  
+- **Escalation Policies** - Escalation rules and notification chains
+- **Retrospectives** - Post-incident analysis with lessons learned and action items
 
-- **data_fetchers/**: API clients for each Rootly data type
-- **document_mappers/**: Convert Rootly data to Glean document format
-- **processors/**: Sync coordination and orchestration
-- **glean_schema/**: Glean document definitions
+The integration includes enhanced incident features with timeline events, action items, detailed severity information, and comprehensive postmortem analysis.
 
-## Features
-
-- **Multi-Data Type Support**: Incidents, alerts, schedules, escalation policies, and retrospectives
-- **Enhanced Incident Data**: Timeline events, action items, and detailed severity information
-- **Comprehensive Retrospectives**: What went well, improvements, lessons learned, and action items
-- **Modular Architecture**: Separate data fetchers and document mappers for each data type
-- **Configuration Management**: Structured config with separated secrets management
-- **Real-time Sync**: Configurable sync intervals and filtering options
+## Quick Start
 
 ## Requirements
 
-- **Python 3.13+** (uses modern union syntax and latest features)
-- Virtual environment recommended
-
-## Setup
+- **Python 3.13+** 
+  ```bash
+  # macOS (using Homebrew)
+  brew install python@3.13
+  ``` 
 
 1. **Clone and setup environment:**
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:rootlyhq/glean-rootly-connector.git
    cd rootly_glean_integration
    python -m venv venv
    source venv/bin/activate
@@ -43,23 +38,16 @@ This project creates a seamless connection between Rootly and Glean, enabling us
    ```
 
 3. **Get secrets file:**
-   Contact **Spencer** for the `secrets.env` file containing API tokens.
+   Create a `secrets.env` file containing:
+   ```
+   GLEAN_API_TOKEN=your_glean_api_token_here
+   ROOTLY_API_TOKEN=your_rootly_api_token_here
+   ```
 
-4. **Configuration:**
-   - `config.json` - Contains non-sensitive configuration settings
-   - `secrets.env` - Contains API tokens (obtained from Spencer)
-
-## Usage
-
-**Run the integration:**
-```bash
-python app.py
-```
-
-**Run with date filter:**
-```bash
-python app.py 2024-01-01T00:00:00Z
-```
+4. **Run the integration:**
+   ```bash
+   python app.py
+   ```
 
 ## Configuration
 
@@ -68,6 +56,33 @@ Edit `config.json` to customize:
 - Item limits and pagination per data type
 - Enhanced incident features (timeline events, action items)
 - Logging levels and sync intervals
+
+Configuration files:
+- `config.json` - Contains non-sensitive configuration settings
+- `secrets.env` - Contains API tokens (obtained from Spencer)
+
+## Features
+
+- **Multi-Data Type Support**: Incidents, alerts, schedules, escalation policies, and retrospectives
+- **Enhanced Incident Data**: Timeline events, action items, and detailed severity information
+- **Comprehensive Retrospectives**: What went well, improvements, lessons learned, and action items
+- **Modular Architecture**: Separate data fetchers and document mappers for each data type
+- **Configuration Management**: Structured config with separated secrets management
+- **Real-time Sync**: Configurable sync intervals and filtering options
+
+## Architecture
+
+- **data_fetchers/**: API clients for each Rootly data type
+- **document_mappers/**: Convert Rootly data to Glean document format
+- **processors/**: Sync coordination and orchestration
+- **glean_schema/**: Glean document definitions
+
+## Advanced Usage
+
+**Run with date filter:**
+```bash
+python app.py 2024-01-01T00:00:00Z
+```
 
 ## Glean Search
 
