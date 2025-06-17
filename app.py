@@ -151,13 +151,24 @@ if __name__ == "__main__":
 
             logging.info(f"\\n--- Attempting to bulk index {len(all_documents)} documents ---")
             
-            # Debug: Check for documents with empty view URLs
+            # Debug: Check for duplicate document IDs
+            doc_ids = []
             for i, doc in enumerate(all_documents):
                 doc_dict = doc.model_dump() if hasattr(doc, 'model_dump') else doc.__dict__
+                doc_id = doc_dict.get('id', f'unknown_{i}')
+                if doc_id in doc_ids:
+                    logging.error(f"DUPLICATE ID FOUND: {doc_id} in document {i} ({doc_dict.get('title', 'No title')})")
+                else:
+                    doc_ids.append(doc_id)
+                logging.debug(f"Document {i}: ID={doc_id}, Title={doc_dict.get('title', 'No title')}")
+                
+                # Check for documents with empty view URLs
                 if 'viewURL' in doc_dict and not doc_dict['viewURL']:
                     logging.warning(f"Document {i} ({doc_dict.get('title', 'No title')}) has empty viewURL")
                 elif 'viewURL' not in doc_dict:
                     logging.debug(f"Document {i} ({doc_dict.get('title', 'No title')}) has no viewURL field")
+            
+            logging.info(f"Total unique document IDs: {len(set(doc_ids))}, Total documents: {len(all_documents)}")
             
             try:
                 index_api_response = c.indexing.documents.index(

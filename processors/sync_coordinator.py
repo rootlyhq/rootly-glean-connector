@@ -81,6 +81,14 @@ class SyncCoordinator:
             try:
                 logger.info(f"Starting sync for {data_type}...")
                 documents = self._sync_data_type(data_type, config_info, updated_after)
+                
+                # Debug: Log document IDs being added
+                if documents:
+                    logger.info(f"Adding {len(documents)} {data_type} documents:")
+                    for i, doc in enumerate(documents):
+                        doc_dict = doc.model_dump() if hasattr(doc, 'model_dump') else doc.__dict__
+                        logger.info(f"  {data_type}[{i}]: ID={doc_dict.get('id')}, Title={doc_dict.get('title', 'No title')}")
+                
                 all_documents.extend(documents)
                 results[data_type] = {
                     'status': 'success',
@@ -95,13 +103,35 @@ class SyncCoordinator:
                     'error': str(e)
                 }
         
+        # Deduplicate documents by ID before returning
+        unique_documents = []
+        seen_ids = set()
+        duplicates_removed = 0
+        
+        for doc in all_documents:
+            doc_dict = doc.model_dump() if hasattr(doc, 'model_dump') else doc.__dict__
+            doc_id = doc_dict.get('id')
+            
+            if doc_id not in seen_ids:
+                unique_documents.append(doc)
+                seen_ids.add(doc_id)
+            else:
+                duplicates_removed += 1
+                doc_title = doc_dict.get('title', 'No title')
+                doc_type = doc_dict.get('object_type', 'Unknown')
+                logger.warning(f"Removed duplicate document: ID={doc_id}, Type={doc_type}, Title={doc_title}")
+        
+        if duplicates_removed > 0:
+            logger.info(f"Removed {duplicates_removed} duplicate documents. Final count: {len(unique_documents)}")
+        
         # Return results with total document count
         results['summary'] = {
-            'total_documents': len(all_documents),
+            'total_documents': len(unique_documents),
+            'duplicates_removed': duplicates_removed,
             'sync_status': 'completed'
         }
         
-        return results, all_documents
+        return results, unique_documents
     
     def _sync_data_type(
         self, 
