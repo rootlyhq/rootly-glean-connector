@@ -12,7 +12,7 @@ This project creates a seamless connection between Rootly and Glean, enabling us
 - **Escalation Policies** - Escalation rules and notification chains
 - **Retrospectives** - Post-incident analysis with lessons learned and action items
 
-The integration includes enhanced incident features with timeline events, action items, detailed severity information, and comprehensive postmortem analysis.
+The integration includes enhanced incident features with timeline events, action items, detailed severity information, and postmortem analysis.
 
 ## Quick Start
 
@@ -59,16 +59,7 @@ Edit `config.json` to customize:
 
 Configuration files:
 - `config.json` - Contains non-sensitive configuration settings
-- `secrets.env` - Contains API tokens (obtained from Spencer)
-
-## Features
-
-- **Multi-Data Type Support**: Incidents, alerts, schedules, escalation policies, and retrospectives
-- **Enhanced Incident Data**: Timeline events, action items, and detailed severity information
-- **Comprehensive Retrospectives**: What went well, improvements, lessons learned, and action items
-- **Modular Architecture**: Separate data fetchers and document mappers for each data type
-- **Configuration Management**: Structured config with separated secrets management
-- **Real-time Sync**: Configurable sync intervals and filtering options
+- `secrets.env` - Contains API tokens
 
 ## Architecture
 
