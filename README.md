@@ -52,6 +52,7 @@ The integration includes enhanced incident features with timeline events, action
 ## Configuration
 
 Edit `config.json` to customize:
+- **Glean API host** - Update `glean.api_host` to match your Glean server (default: `support-lab-be.glean.com`)
 - Data type settings (enable/disable incidents, alerts, schedules, escalation policies, retrospectives)
 - Item limits and pagination per data type
 - Enhanced incident features (timeline events, action items)
