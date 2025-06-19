@@ -1,4 +1,4 @@
-# Glean Rootly Connector
+# Rootly Glean Connector
 
 A Python integration that syncs Rootly incident management data with Glean for unified search and discovery.
 
