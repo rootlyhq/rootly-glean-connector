@@ -18,7 +18,7 @@ logging.basicConfig(
     level=getattr(logging, config.logging.level),
     format=config.logging.format
 )
-logging.getLogger("httpx").setLevel(logging.DEBUG)
+logging.getLogger("httpx").setLevel(logging.INFO)
 
 logging.info("Configuration loaded successfully")
 logging.info(f"Using Glean datasource: {config.glean.datasource_name}")
