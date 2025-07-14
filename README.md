@@ -8,11 +8,7 @@ This project creates a seamless connection between Rootly and Glean, enabling us
 
 - **Incidents** - Active and resolved incidents with severity, status, and timeline data
 - **Alerts** - Alert configurations and monitoring rules
-- **Schedules** - On-call schedules and team assignments  
-- **Escalation Policies** - Escalation rules and notification chains
-- **Retrospectives** - Post-incident analysis with lessons learned and action items
-
-The integration includes enhanced incident features with timeline events, action items, detailed severity information, and postmortem analysis.
+- **Retrospectives** - Post-incident analysis with link to document on Rootly
 
 ## Quick Start
 
@@ -26,8 +22,8 @@ The integration includes enhanced incident features with timeline events, action
 
 1. **Clone and setup environment:**
    ```bash
-   git clone git@github.com:rootlyhq/glean-rootly-connector.git
-   cd rootly_glean_integration
+   git clone https://github.com/rootlyhq/rootly-glean-connector.git
+   cd rootly-glean-connector
    python -m venv venv
    source venv/bin/activate
    ```
@@ -75,15 +71,3 @@ Configuration files:
 ```bash
 python app.py 2024-01-01T00:00:00Z
 ```
-
-## Glean Search
-
-Once synced, search for Rootly data in Glean:
-- **Incidents**: `INC-123`, `severity:high`, `status:resolved`
-- **Retrospectives**: `objectType:Retrospective`, `type:retrospective`
-- **Linked Content**: `incident:123` (find retrospectives for specific incidents)
-- **Timeline Events**: Embedded in incident documents with timestamps
-- **Action Items**: From both incidents and retrospectives
-- **Postmortem Analysis**: "what went well", "lessons learned", improvement suggestions
-
-
