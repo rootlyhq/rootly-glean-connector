@@ -48,7 +48,7 @@ class AlertDocumentMapper(BaseDocumentMapper):
             self._add_alert_status(doc_fields, attributes)
             self._add_alert_priority(doc_fields, attributes)
             self._add_alert_source(doc_fields, attributes)
-            self._add_alert_content(doc_fields, attributes)
+            self._add_alert_content(doc_fields, attributes, alert)
             self._add_author(doc_fields, attributes)
             
             # Add timestamps
@@ -77,8 +77,8 @@ class AlertDocumentMapper(BaseDocumentMapper):
         if source := attributes.get('source', attributes.get('source_type')):
             doc_fields.setdefault("tags", []).append(f"source:{source}")
     
-    def _add_alert_content(self, doc_fields: Dict, attributes: Dict) -> None:
-        """Add alert body content"""
+    def _add_alert_content(self, doc_fields: Dict, attributes: Dict, alert: Dict) -> None:
+        """Add alert body content with enhanced monitoring rules"""
         content_parts = []
         content_parts.append(f"Title: {attributes.get('title', attributes.get('name', 'No Title'))}")
         
@@ -100,8 +100,55 @@ class AlertDocumentMapper(BaseDocumentMapper):
         if details := attributes.get("details"):
             content_parts.append(f"\\nDetails:\\n{details}")
         
+        # Add enhanced monitoring configuration data
+        self._add_monitoring_rules_content(content_parts, alert)
+        
         # Set body content
         doc_fields["body"] = self._build_content_field("\\n".join(content_parts))
+    
+    def _add_monitoring_rules_content(self, content_parts: list, alert: Dict) -> None:
+        """Add monitoring rules and configuration content"""
+        monitoring_context = alert.get("monitoring_context", {})
+        
+        # Add alert routing rules
+        if routing_rules := monitoring_context.get("routing_rules"):
+            content_parts.append("\\n## Alert Routing Rules")
+            for rule in routing_rules[:3]:  # Limit to 3 rules for readability
+                if rule_attrs := rule.get("attributes"):
+                    rule_name = rule_attrs.get("name", "Unnamed Rule")
+                    match_mode = rule_attrs.get("match_mode", "Unknown")
+                    content_parts.append(f"- **{rule_name}** (Match: {match_mode})")
+                    
+                    # Add rule conditions if available
+                    if conditions := rule_attrs.get("conditions"):
+                        content_parts.append(f"  Conditions: {conditions}")
+        
+        # Add alert urgencies/priorities
+        if urgencies := monitoring_context.get("urgencies"):
+            content_parts.append("\\n## Alert Urgency Levels")
+            for urgency in urgencies:
+                if urgency_attrs := urgency.get("attributes"):
+                    urgency_name = urgency_attrs.get("name", "Unknown")
+                    urgency_level = urgency_attrs.get("level", "Unknown")
+                    content_parts.append(f"- **{urgency_name}**: Level {urgency_level}")
+        
+        # Add alert groups
+        if alert_groups := monitoring_context.get("alert_groups"):
+            content_parts.append("\\n## Alert Groups")
+            for group in alert_groups[:3]:  # Limit to 3 groups
+                if group_attrs := group.get("attributes"):
+                    group_name = group_attrs.get("name", "Unnamed Group")
+                    group_desc = group_attrs.get("description", "No description")
+                    content_parts.append(f"- **{group_name}**: {group_desc}")
+        
+        # Add recent alert events context
+        if recent_events := monitoring_context.get("recent_events"):
+            content_parts.append("\\n## Recent Alert Activity")
+            for event in recent_events[:3]:  # Limit to 3 recent events
+                if event_attrs := event.get("attributes"):
+                    event_type = event_attrs.get("event_type", "Unknown")
+                    event_time = event_attrs.get("created_at", "Unknown time")
+                    content_parts.append(f"- {event_type} at {event_time}")
     
     def _add_author(self, doc_fields: Dict, attributes: Dict) -> None:
         """Add author information"""
