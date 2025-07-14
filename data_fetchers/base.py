@@ -83,3 +83,15 @@ class RootlyDataFetcher:
         
         logger.info(f"Total {len(all_items)} items fetched from {endpoint}")
         return all_items[:max_items] if max_items else all_items
+    
+    def fetch_single_endpoint(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
+        """Fetch data from a single endpoint (non-paginated)"""
+        try:
+            logger.debug(f"Fetching single endpoint: {endpoint} with params: {params}")
+            response = self._make_request(endpoint, params)
+            data = response.get("data", [])
+            logger.debug(f"Fetched {len(data) if data else 0} items from {endpoint}")
+            return data
+        except Exception as e:
+            logger.warning(f"Failed to fetch from {endpoint}: {e}")
+            return None

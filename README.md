@@ -8,11 +8,9 @@ This project creates a seamless connection between Rootly and Glean, enabling us
 
 - **Incidents** - Active and resolved incidents with severity, status, and timeline data
 - **Alerts** - Alert configurations and monitoring rules
-- **Schedules** - On-call schedules and team assignments  
-- **Escalation Policies** - Escalation rules and notification chains
-- **Retrospectives** - Post-incident analysis with lessons learned and action items
-
-The integration includes enhanced incident features with timeline events, action items, detailed severity information, and postmortem analysis.
+- **Schedules** - On-call schedules with rotations, shifts, and user assignments
+- **Escalation Policies** - Links to escalation rules and notification chains
+- **Retrospectives** - Links to post-incident analysis
 
 ## Quick Start
 
@@ -26,8 +24,8 @@ The integration includes enhanced incident features with timeline events, action
 
 1. **Clone and setup environment:**
    ```bash
-   git clone git@github.com:rootlyhq/glean-rootly-connector.git
-   cd rootly_glean_integration
+   git clone https://github.com/rootlyhq/rootly-glean-connector.git
+   cd rootly-glean-connector
    python -m venv venv
    source venv/bin/activate
    ```
@@ -69,21 +67,40 @@ Configuration files:
 - **processors/**: Sync coordination and orchestration
 - **glean_schema/**: Glean document definitions
 
+## Glean Search Examples
+
+Once synced, search for Rootly data in Glean:
+
+### Incidents
+- `INC-123` - Find specific incidents
+- `severity:high` - Filter by severity level
+- `status:resolved` - Find resolved incidents
+- `"Find me incidents with timeline events"` - Incidents with detailed timeline data
+- `"Show me incidents with high severity that are resolved"` - High severity resolved incidents
+
+### Schedules & On-Call
+- `"Jerry's schedule"` - Find schedules by user name
+- `"on call today"` - Current on-call assignments
+- `"schedule overrides"` - Override shifts and coverage
+- `"Adam Frank"` - Find schedules for specific users
+- `"Show me schedule rotations in rootly"` - Schedule rotation patterns and timing
+- `"Show me latest on-call schedule in rootly"` - Current and upcoming on-call assignments
+
+### Alerts & Monitoring
+- `alert` - All alert configurations
+- `monitoring rules` - Alert routing and urgency settings
+
+### Escalation & Policies
+- `escalation policy` - Notification chains and rules
+- `"The Razors Team"` - Team-specific policies
+
+### Retrospectives
+- `retrospective` - Post-incident analysis
+- `lessons learned` - Retrospective insights
+
 ## Advanced Usage
 
 **Run with date filter:**
 ```bash
 python app.py 2024-01-01T00:00:00Z
 ```
-
-## Glean Search
-
-Once synced, search for Rootly data in Glean:
-- **Incidents**: `INC-123`, `severity:high`, `status:resolved`
-- **Retrospectives**: `objectType:Retrospective`, `type:retrospective`
-- **Linked Content**: `incident:123` (find retrospectives for specific incidents)
-- **Timeline Events**: Embedded in incident documents with timestamps
-- **Action Items**: From both incidents and retrospectives
-- **Postmortem Analysis**: "what went well", "lessons learned", improvement suggestions
-
-
