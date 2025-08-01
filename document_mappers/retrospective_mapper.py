@@ -89,31 +89,31 @@ class RetrospectiveDocumentMapper(BaseDocumentMapper):
         
         # Add summary if exists
         if summary := attributes.get("summary"):
-            content_parts.append(f"\\nSummary:\\n{summary}")
+            content_parts.append(f"\nSummary:\n{summary}")
             doc_fields["summary"] = self._build_content_field(summary)
         
         # Add what went well section
         if what_went_well := attributes.get("what_went_well"):
-            content_parts.append(f"\\n--- What Went Well ---\\n{what_went_well}")
+            content_parts.append(f"\n--- What Went Well ---\n{what_went_well}")
         
         # Add what could be improved section
         if what_could_be_improved := attributes.get("what_could_be_improved"):
-            content_parts.append(f"\\n--- What Could Be Improved ---\\n{what_could_be_improved}")
+            content_parts.append(f"\n--- What Could Be Improved ---\n{what_could_be_improved}")
         
         # Add action items section
         if action_items := attributes.get("action_items"):
-            content_parts.append(f"\\n--- Action Items ---\\n{action_items}")
+            content_parts.append(f"\n--- Action Items ---\n{action_items}")
         
         # Add lessons learned section
         if lessons_learned := attributes.get("lessons_learned"):
-            content_parts.append(f"\\n--- Lessons Learned ---\\n{lessons_learned}")
+            content_parts.append(f"\n--- Lessons Learned ---\n{lessons_learned}")
         
         # Add additional notes if exists
         if notes := attributes.get("notes"):
-            content_parts.append(f"\\n--- Additional Notes ---\\n{notes}")
+            content_parts.append(f"\n--- Additional Notes ---\n{notes}")
         
         # Set body content
-        doc_fields["body"] = self._build_content_field("\\n".join(content_parts))
+        doc_fields["body"] = self._build_content_field("\n".join(content_parts))
     
     def _add_author(self, doc_fields: Dict, attributes: Dict) -> None:
         """Add author information"""

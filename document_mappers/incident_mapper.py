@@ -91,7 +91,7 @@ class IncidentDocumentMapper(BaseDocumentMapper):
         
         # Add summary if exists
         if summary_text := attributes.get("summary"):
-            content_parts.append(f"\\nSummary:\\n{summary_text}")
+            content_parts.append(f"\nSummary:\n{summary_text}")
             doc_fields["summary"] = self._build_content_field(summary_text)
         
         # Add enhanced incident events data
@@ -104,7 +104,7 @@ class IncidentDocumentMapper(BaseDocumentMapper):
         self._add_enhanced_severity_content(content_parts, incident)
         
         # Set body content
-        doc_fields["body"] = self._build_content_field("\\n".join(content_parts))
+        doc_fields["body"] = self._build_content_field("\n".join(content_parts))
     
     def _add_events_content(self, content_parts: List[str], incident: Dict) -> None:
         """Add incident events (timeline) information to content"""
@@ -112,7 +112,7 @@ class IncidentDocumentMapper(BaseDocumentMapper):
         events = enhanced_data.get("events", [])
         
         if events:
-            content_parts.append("\\n--- Incident Events Timeline ---")
+            content_parts.append("\n--- Incident Events Timeline ---")
             for event in events[:10]:  # Limit to first 10 events
                 attributes = event.get("attributes", {})
                 timestamp = attributes.get("occurred_at", attributes.get("created_at", ""))
@@ -129,7 +129,7 @@ class IncidentDocumentMapper(BaseDocumentMapper):
         action_items = enhanced_data.get("action_items", [])
         
         if action_items:
-            content_parts.append("\\n--- Action Items ---")
+            content_parts.append("\n--- Action Items ---")
             for item in action_items:
                 attributes = item.get("attributes", {})
                 title = attributes.get("title", f"Action Item {item.get('id', 'Unknown')}")
@@ -144,7 +144,7 @@ class IncidentDocumentMapper(BaseDocumentMapper):
         else:
             # Fall back to basic action items if enhanced data not available
             if action_items := incident.get('relationships', {}).get('action_items', {}).get('data', []):
-                content_parts.append("\\nAction Items:")
+                content_parts.append("\nAction Items:")
                 for item in action_items:
                     content_parts.append(f"- {item.get('id', 'Unknown Action Item')}")
     
@@ -160,7 +160,7 @@ class IncidentDocumentMapper(BaseDocumentMapper):
             sev_level = sev_attributes.get("level", "")
             
             if sev_description and sev_description != sev_name:
-                content_parts.append(f"\\nSeverity Details:")
+                content_parts.append(f"\nSeverity Details:")
                 content_parts.append(f"Level: {sev_name} ({sev_level})")
                 content_parts.append(f"Description: {sev_description}")
     

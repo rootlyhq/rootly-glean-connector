@@ -102,7 +102,7 @@ class ScheduleDocumentMapper(BaseDocumentMapper):
         self._add_oncall_data(content_parts, schedule)
         
         # Set body content
-        doc_fields["body"] = self._build_content_field("\\n".join(content_parts))
+        doc_fields["body"] = self._build_content_field("\n".join(content_parts))
     
     def _add_oncall_data(self, content_parts: List[str], schedule: Dict) -> None:
         """Add on-call shifts, users, and overrides to content"""

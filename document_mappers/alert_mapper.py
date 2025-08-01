@@ -30,13 +30,32 @@ class AlertDocumentMapper(BaseDocumentMapper):
     def convert(self, alert: Dict) -> Optional[models.DocumentDefinition]:
         """Convert alert to Glean document"""
         try:
+            # Debug: Log the structure of the first alert to see what fields are available
+            if not hasattr(self, '_logged_structure'):
+                logger.info(f"Sample alert structure: {alert}")
+                self._logged_structure = True
+                
             attributes = alert.get("attributes")
             if not attributes:
                 logger.error(f"Alert ID {alert.get('id', 'Unknown')} missing attributes")
                 return None
+                
+            # Debug: Log attributes for first alert
+            if not hasattr(self, '_logged_attributes'):
+                logger.info(f"Sample alert attributes: {attributes}")
+                self._logged_attributes = True
             
-            # Create base document
-            title = f"[ALERT] {attributes.get('title', attributes.get('name', 'No Title'))}"
+            # Create base document - try multiple possible title fields
+            alert_title = (
+                attributes.get('summary') or 
+                attributes.get('title') or 
+                attributes.get('name') or 
+                (attributes.get('data', {}).get('title') if isinstance(attributes.get('data'), dict) else None) or
+                (attributes.get('data', {}).get('summary') if isinstance(attributes.get('data'), dict) else None) or
+                (attributes.get('description', '').strip()[:50] + '...' if attributes.get('description', '').strip() else None) or
+                f"Alert {alert.get('id', 'Unknown')}"
+            )
+            title = f"[ALERT] {alert_title}"
             doc_fields = self._create_base_document(
                 item_id=alert["id"],
                 object_type="Alert",
@@ -80,7 +99,17 @@ class AlertDocumentMapper(BaseDocumentMapper):
     def _add_alert_content(self, doc_fields: Dict, attributes: Dict, alert: Dict) -> None:
         """Add alert body content with enhanced monitoring rules"""
         content_parts = []
-        content_parts.append(f"Title: {attributes.get('title', attributes.get('name', 'No Title'))}")
+        # Use multiple possible title fields for content
+        alert_title = (
+            attributes.get('summary') or 
+            attributes.get('title') or 
+            attributes.get('name') or 
+            (attributes.get('data', {}).get('title') if isinstance(attributes.get('data'), dict) else None) or
+            (attributes.get('data', {}).get('summary') if isinstance(attributes.get('data'), dict) else None) or
+            (attributes.get('description', '').strip()[:50] + '...' if attributes.get('description', '').strip() else None) or
+            f"Alert {alert.get('id', 'Unknown')}"
+        )
+        content_parts.append(f"Title: {alert_title}")
         
         if status := attributes.get('status'):
             content_parts.append(f"Status: {status}")
@@ -93,18 +122,18 @@ class AlertDocumentMapper(BaseDocumentMapper):
         
         # Add description/message if exists
         if description := attributes.get("description", attributes.get("message")):
-            content_parts.append(f"\\nDescription:\\n{description}")
+            content_parts.append(f"\nDescription:\n{description}")
             doc_fields["summary"] = self._build_content_field(description)
         
         # Add details if they exist
         if details := attributes.get("details"):
-            content_parts.append(f"\\nDetails:\\n{details}")
+            content_parts.append(f"\nDetails:\n{details}")
         
         # Add enhanced monitoring configuration data
         self._add_monitoring_rules_content(content_parts, alert)
         
         # Set body content
-        doc_fields["body"] = self._build_content_field("\\n".join(content_parts))
+        doc_fields["body"] = self._build_content_field("\n".join(content_parts))
     
     def _add_monitoring_rules_content(self, content_parts: list, alert: Dict) -> None:
         """Add monitoring rules and configuration content"""
@@ -112,7 +141,7 @@ class AlertDocumentMapper(BaseDocumentMapper):
         
         # Add alert routing rules
         if routing_rules := monitoring_context.get("routing_rules"):
-            content_parts.append("\\n## Alert Routing Rules")
+            content_parts.append("\n## Alert Routing Rules")
             for rule in routing_rules[:3]:  # Limit to 3 rules for readability
                 if rule_attrs := rule.get("attributes"):
                     rule_name = rule_attrs.get("name", "Unnamed Rule")
@@ -125,7 +154,7 @@ class AlertDocumentMapper(BaseDocumentMapper):
         
         # Add alert urgencies/priorities
         if urgencies := monitoring_context.get("urgencies"):
-            content_parts.append("\\n## Alert Urgency Levels")
+            content_parts.append("\n## Alert Urgency Levels")
             for urgency in urgencies:
                 if urgency_attrs := urgency.get("attributes"):
                     urgency_name = urgency_attrs.get("name", "Unknown")
@@ -134,7 +163,7 @@ class AlertDocumentMapper(BaseDocumentMapper):
         
         # Add alert groups
         if alert_groups := monitoring_context.get("alert_groups"):
-            content_parts.append("\\n## Alert Groups")
+            content_parts.append("\n## Alert Groups")
             for group in alert_groups[:3]:  # Limit to 3 groups
                 if group_attrs := group.get("attributes"):
                     group_name = group_attrs.get("name", "Unnamed Group")
@@ -143,7 +172,7 @@ class AlertDocumentMapper(BaseDocumentMapper):
         
         # Add recent alert events context
         if recent_events := monitoring_context.get("recent_events"):
-            content_parts.append("\\n## Recent Alert Activity")
+            content_parts.append("\n## Recent Alert Activity")
             for event in recent_events[:3]:  # Limit to 3 recent events
                 if event_attrs := event.get("attributes"):
                     event_type = event_attrs.get("event_type", "Unknown")

@@ -101,27 +101,27 @@ class EscalationPolicyDocumentMapper(BaseDocumentMapper):
         
         # Add escalation rules if available
         if rules := attributes.get('escalation_rules'):
-            content_parts.append(f"\\nEscalation Rules:\\n{rules}")
+            content_parts.append(f"\nEscalation Rules:\n{rules}")
         
         # Add detailed notification chain information
         self._add_notification_chain_content(content_parts, policy)
         
         # Set body content
-        doc_fields["body"] = self._build_content_field("\\n".join(content_parts))
+        doc_fields["body"] = self._build_content_field("\n".join(content_parts))
     
     def _add_notification_chain_content(self, content_parts: list, policy: Dict) -> None:
         """Add detailed notification chain and escalation level content"""
         
         # Add escalation levels (detailed steps)
         if escalation_levels := policy.get("escalation_levels"):
-            content_parts.append("\\n## Escalation Levels")
+            content_parts.append("\n## Escalation Levels")
             for i, level in enumerate(escalation_levels, 1):
                 if level_attrs := level.get("attributes"):
                     level_name = level_attrs.get("name", f"Level {i}")
                     notification_type = level_attrs.get("notification_type", "Unknown")
                     timeout = level_attrs.get("timeout", "Unknown")
                     
-                    content_parts.append(f"\\n### {level_name}")
+                    content_parts.append(f"\n### {level_name}")
                     content_parts.append(f"- **Notification Type**: {notification_type}")
                     content_parts.append(f"- **Timeout**: {timeout} minutes")
                     
@@ -134,7 +134,7 @@ class EscalationPolicyDocumentMapper(BaseDocumentMapper):
         
         # Add escalation paths (notification routing)
         if escalation_paths := policy.get("escalation_paths"):
-            content_parts.append("\\n## Escalation Paths")
+            content_parts.append("\n## Escalation Paths")
             for path in escalation_paths:
                 if path_attrs := path.get("attributes"):
                     path_name = path_attrs.get("name", "Unnamed Path")
@@ -153,7 +153,7 @@ class EscalationPolicyDocumentMapper(BaseDocumentMapper):
         
         # Add user notification rules
         if user_notification_rules := policy.get("user_notification_rules"):
-            content_parts.append("\\n## User Notification Rules")
+            content_parts.append("\n## User Notification Rules")
             for rule in user_notification_rules[:5]:  # Limit to 5 rules
                 if rule_attrs := rule.get("attributes"):
                     rule_name = rule_attrs.get("name", "Unnamed Rule")
