@@ -44,7 +44,7 @@ def fetch_schedules(
 
 def _enhance_schedule_with_oncall_data(schedule: Dict, fetcher: RootlyDataFetcher) -> None:
     """
-    Enhance schedule with shifts, users, and overrides data
+    Enhance schedule with shifts, users, overrides, and on-call roles data
     
     Args:
         schedule: Schedule dictionary to enhance
@@ -108,6 +108,31 @@ def _enhance_schedule_with_oncall_data(schedule: Dict, fetcher: RootlyDataFetche
             logger.debug(f"Added user lookup for {len(user_lookup)} users to schedule {schedule_id}")
         else:
             schedule["user_lookup"] = {}
+        
+        # Fetch on-call roles for additional context
+        try:
+            oncall_roles = fetcher.fetch_single_endpoint("on_call_roles")
+            if oncall_roles:
+                # Filter roles that have schedule-related permissions
+                relevant_roles = []
+                for role in oncall_roles:
+                    attrs = role.get('attributes', {})
+                    # Check if role has schedule permissions
+                    if (attrs.get('schedules_permissions') or 
+                        attrs.get('schedule_override_permissions') or
+                        'schedule' in attrs.get('name', '').lower()):
+                        relevant_roles.append(role)
+                
+                if relevant_roles:
+                    schedule["oncall_roles"] = relevant_roles
+                    logger.debug(f"Added {len(relevant_roles)} relevant on-call roles to schedule {schedule_id}")
+                else:
+                    schedule["oncall_roles"] = []
+            else:
+                schedule["oncall_roles"] = []
+        except Exception as roles_error:
+            logger.debug(f"Failed to fetch on-call roles for schedule {schedule_id}: {roles_error}")
+            schedule["oncall_roles"] = []
             
     except Exception as e:
         logger.warning(f"Failed to enhance schedule {schedule_id} with on-call data: {e}")

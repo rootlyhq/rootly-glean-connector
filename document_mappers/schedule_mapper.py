@@ -105,10 +105,36 @@ class ScheduleDocumentMapper(BaseDocumentMapper):
         doc_fields["body"] = self._build_content_field("\n".join(content_parts))
     
     def _add_oncall_data(self, content_parts: List[str], schedule: Dict) -> None:
-        """Add on-call shifts, users, and overrides to content"""
+        """Add on-call shifts, users, overrides, and roles to content"""
         
         # Get user lookup for resolving user names
         user_lookup = schedule.get('user_lookup', {})
+        
+        # Add on-call roles information
+        if oncall_roles := schedule.get('oncall_roles'):
+            content_parts.append("\n## On-Call Roles & Permissions")
+            for role in oncall_roles:
+                if role_attrs := role.get('attributes'):
+                    role_name = role_attrs.get('name', 'Unknown Role')
+                    role_type = role_attrs.get('system_role', 'custom')
+                    
+                    content_parts.append(f"### {role_name} ({role_type} role)")
+                    
+                    # Add schedule-related permissions
+                    if schedules_perms := role_attrs.get('schedules_permissions'):
+                        content_parts.append(f"- Schedule Permissions: {', '.join(schedules_perms)}")
+                    
+                    if override_perms := role_attrs.get('schedule_override_permissions'):
+                        content_parts.append(f"- Override Permissions: {', '.join(override_perms)}")
+                    
+                    # Add other relevant permissions for context
+                    relevant_perms = ['alerts_permissions', 'escalation_policies_permissions', 'live_call_routing_permissions']
+                    for perm_type in relevant_perms:
+                        if perms := role_attrs.get(perm_type):
+                            perm_name = perm_type.replace('_permissions', '').replace('_', ' ').title()
+                            content_parts.append(f"- {perm_name}: {', '.join(perms)}")
+                    
+                    content_parts.append("")  # Add spacing between roles
         
         # Add schedule rotations
         if rotations := schedule.get('rotations'):
