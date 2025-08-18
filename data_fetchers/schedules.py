@@ -63,8 +63,8 @@ def _enhance_schedule_with_oncall_data(schedule: Dict, fetcher: RootlyDataFetche
             schedule["rotations"] = rotations_data
             logger.debug(f"Added {len(rotations_data)} rotations to schedule {schedule_id}")
         
-        # Fetch all shifts for this schedule (this endpoint exists)
-        shifts_all_data = fetcher.fetch_single_endpoint("shifts", params={"schedule_id": schedule_id})
+        # Fetch all shifts for this schedule using correct endpoint
+        shifts_all_data = fetcher.fetch_single_endpoint(f"schedules/{schedule_id}/shifts")
         if shifts_all_data:
             schedule["all_shifts"] = shifts_all_data
             logger.debug(f"Added {len(shifts_all_data)} all shifts to schedule {schedule_id}")
