@@ -3,6 +3,7 @@
 One‑file Rootly → Glean sync with inline settings.
 """
 
+import coloredlogs
 import os
 import logging
 import time
@@ -12,13 +13,10 @@ from config import get_config, config_manager
 
 # Load configuration
 config = get_config()
-
-# Setup logging based on configuration
-logging.basicConfig(
-    level=getattr(logging, config.logging.level),
-    format=config.logging.format
+coloredlogs.install(
+    level='INFO',
+    fmt=config.logging.format,
 )
-logging.getLogger("httpx").setLevel(logging.INFO)
 
 logging.info("Configuration loaded successfully")
 logging.info(f"Using Glean datasource: {config.glean.datasource_name}")
@@ -80,7 +78,8 @@ def ensure_datasource(client: Glean) -> None:
         display_name=config.glean.display_name,
         datasource_category="TICKETS",
         url_regex="https://rootly.com/account/(incidents|alerts|schedules|escalation_policies)/.*",
-        object_definitions=get_object_definitions()
+        object_definitions=get_object_definitions(),
+        aliases=["rootly"],
     )
     
     try:
