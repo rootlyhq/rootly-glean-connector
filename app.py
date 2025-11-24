@@ -3,10 +3,11 @@
 One‑file Rootly → Glean sync with inline settings.
 """
 
-import coloredlogs
 import os
 import logging
 import time
+
+import coloredlogs
 
 # Import configuration management
 from config import get_config, config_manager
@@ -14,9 +15,10 @@ from config import get_config, config_manager
 # Load configuration
 config = get_config()
 coloredlogs.install(
-    level='INFO',
+    level=config.logging.level,
     fmt=config.logging.format,
 )
+logging.getLogger("httpx").setLevel(logging.INFO)
 
 logging.info("Configuration loaded successfully")
 logging.info(f"Using Glean datasource: {config.glean.datasource_name}")
