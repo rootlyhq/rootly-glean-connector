@@ -44,6 +44,6 @@
   },
   "logging": {
     "level": "INFO",
-    "format": "%(asctime)s - %(levelname)s - %(message)s"
+    "format": "%(asctime)s,%(msecs)03d %(filename)s:%(lineno)d %(levelname)s %(message)s"
   }
 }

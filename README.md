@@ -80,3 +80,6 @@ Once synced, search for Rootly data in Glean:
 
 ### Alerts & Monitoring
 - `Show latest alerts in Rootly`
+
+### All Rootly Documents
+- `app:rootly`: After connecting the new Rootly integration, please allow a few hours for Glean to fully index your Rootly documents.
