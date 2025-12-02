@@ -1,6 +1,12 @@
 # Rootly Glean Connector
 
+<<<<<<< HEAD
 An integration that syncs [Rootly](https://rootly.com/) incident management data with [Glean](https://www.glean.com/) for unified search and discovery.
+=======
+A Python integration that syncs Rootly incident management data with Glean for unified search and discovery.
+![Glean and Rootly collaboration](rootly-glean-integration.jpg)
+
+>>>>>>> b97f219 (Adding a visual)
 
 ## Overview
 
