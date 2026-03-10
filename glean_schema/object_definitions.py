@@ -2,7 +2,6 @@
 Glean object definitions for different Rootly data types
 """
 
-
 from glean.api_client import models
 
 
