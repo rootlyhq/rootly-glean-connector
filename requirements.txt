@@ -1,14 +1,5 @@
-coloredlogs
-requests
-python-dateutil
-python-dotenv
-glean-api-client
-
-# HTTP helper used in the script
+coloredlogs>=15.0.0
 requests>=2.31.0
-
-# ISO‑8601 timestamp parsing
 python-dateutil>=2.9.0
-
-# Glean API client
+python-dotenv>=1.0.0
 glean-api-client>=0.1.0
