@@ -1,3 +1,4 @@
+required-version = ">=0.15.5"
 target-version = "py311"
 line-length = 120
 
