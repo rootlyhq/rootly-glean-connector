@@ -7,4 +7,4 @@ from .escalation_policies import fetch_escalation_policies
 from .incidents import fetch_incidents
 from .schedules import fetch_schedules
 
-__all__ = ["fetch_incidents", "fetch_alerts", "fetch_schedules", "fetch_escalation_policies"]
+__all__ = ["fetch_alerts", "fetch_escalation_policies", "fetch_incidents", "fetch_schedules"]
