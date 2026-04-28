@@ -1,4 +1,4 @@
-coloredlogs>=15.0.0
+coloredlogs>=15.0.1
 requests>=2.31.0
 python-dateutil>=2.9.0
 python-dotenv>=1.0.0
