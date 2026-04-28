@@ -1,5 +1,5 @@
 coloredlogs>=15.0.1
 requests>=2.33.1
 python-dateutil>=2.9.0.post0
-python-dotenv>=1.0.0
+python-dotenv>=1.2.2
 glean-api-client>=0.12.24
