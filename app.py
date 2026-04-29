@@ -46,11 +46,10 @@ def glean_client() -> Glean:
     logging.info("Initializing Glean API client...")
 
     try:
-        instance_name = config_manager.get_instance_name()
-        logging.info(f"Using instance name: {instance_name}")
+        server_url = config_manager.get_server_url()
+        logging.info(f"Using server URL: {server_url}")
 
-        # Standard Glean client initialization
-        client = Glean(api_token=config.glean.api_token, instance=instance_name)
+        client = Glean(api_token=config.glean.api_token, server_url=server_url)
         logging.info("Glean API client initialized.")
         return client
 

@@ -184,20 +184,10 @@ class ConfigManager:
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON in configuration file: {e}") from e
 
-    def get_instance_name(self) -> str:
-        """Extract Glean instance name from API host"""
+    def get_server_url(self) -> str:
+        """Return the full backend server URL from the configured api_host."""
         config = self.load_config()
-        hostname = config.glean.api_host
-
-        # Extract instance name from hostname
-        instance_name = hostname.split(".")[0]
-        if "-be" in instance_name:
-            instance_name = instance_name.split("-be")[0]
-
-        if not instance_name:
-            raise ValueError(f"Could not derive instance name from host: {hostname}")
-
-        return instance_name
+        return f"https://{config.glean.api_host}"
 
 
 # Global configuration instance
