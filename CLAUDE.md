@@ -11,7 +11,10 @@ make lint              # or: python3 -m ruff check .
 # Format
 make fmt               # or: python3 -m ruff format .
 
-# Both lint + format check
+# Offline startup and SDK regression tests
+make test
+
+# Lint, tests, and format check
 make check
 
 # Run
@@ -22,7 +25,7 @@ python app.py 2024-01-01T00:00:00Z # sync since timestamp (ISO-8601)
 bash setup.sh
 ```
 
-No test suite exists yet.
+Tests use dummy credentials and mocked HTTP responses; they do not contact Rootly or Glean.
 
 ## Architecture
 

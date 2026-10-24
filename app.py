@@ -91,7 +91,14 @@ def ensure_datasource(client: Glean) -> None:
 
     try:
         logging.info(f"Calling client.indexing.datasources.add with payload: {config_payload}")
-        add_response = client.indexing.datasources.add(**config_payload.model_dump())
+        add_response = client.indexing.datasources.add(
+            name=config_payload.name,
+            display_name=config_payload.display_name,
+            datasource_category=config_payload.datasource_category,
+            url_regex=config_payload.url_regex,
+            object_definitions=config_payload.object_definitions,
+            aliases=config_payload.aliases,
+        )
         logging.info(f"Datasource add/update response: {add_response}")
         logging.info(f"✔ Created/Updated datasource '{config.glean.datasource_name}'")
     except glean_errors.GleanError as e:
